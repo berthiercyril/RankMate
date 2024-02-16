@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # rankmate
 
 This template should help get you started developing with Vue 3 in Vite.
@@ -43,7 +42,7 @@ RankMate est une application web qui permet aux joueurs de League of Legends de 
 
 ## Captures d'écran
 
-![image](https://github.com/berthiercyril/rankmate/assets/78911903/b800d8ec-007a-454e-b821-6fe8b645ced6)
+![image](https://github.com/berthiercyril/RankMate/assets/78911903/a3731485-64c8-4fe7-9849-2828cb5c03fa)
 
 
 ## Fonctionnalités
@@ -65,4 +64,3 @@ Une fois l'application lancée, vous pouvez rejoindre un groupe en saisissant un
 ## Licence
 
 Ce projet est sous licence [MIT](https://opensource.org/licenses/MIT).
->>>>>>> f28e594fff7ba99254f3ce9ec357613094e1911b
