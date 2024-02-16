@@ -6,7 +6,8 @@ RankMate est une application web qui permet aux joueurs de League of Legends de 
 
 ## Captures d'écran
 
-![image](https://github.com/berthiercyril/rankmate/assets/78911903/b800d8ec-007a-454e-b821-6fe8b645ced6)
+![image](https://github.com/berthiercyril/RankMate/assets/78911903/924bb501-025b-458e-914c-b2ba228d9798)
+
 
 
 ## Fonctionnalités
