@@ -1,35 +1,77 @@
-@import './base.css';
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
-}
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
-}
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
+@font-face {
+    font-family: 'Beaufort for LOL';
+    src: url('~@/assets/fonts/BeaufortForLoL-OTF/BeaufortforLOL-Regular.otf') format('opentype');
+    font-weight: 400; /* Regular */
+    font-style: normal;
   }
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
+  
+  @font-face {
+    font-family: 'Beaufort for LOL';
+    src: url('~@/assets/fonts/BeaufortForLoL-OTF/BeaufortforLOL-Medium.otf') format('opentype');
+    font-weight: 500; /* Medium */
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'Beaufort for LOL';
+    src: url('~@/assets/fonts/BeaufortForLoL-OTF/BeaufortforLOL-Bold.otf') format('opentype');
+    font-weight: 700; /* Bold */
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'Beaufort for LOL';
+    src: url('~@/assets/fonts/BeaufortForLoL-OTF/BeaufortforLOL-BoldItalic.otf') format('opentype');
+    font-weight: 700; /* Bold */
+    font-style: italic;
+  }
+  
+  @font-face {
+    font-family: 'Beaufort for LOL';
+    src: url('~@/assets/fonts/BeaufortForLoL-OTF/BeaufortforLOL-Heavy.otf') format('opentype');
+    font-weight: 800; /* Heavy */
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'Beaufort for LOL';
+    src: url('~@/assets/fonts/BeaufortForLoL-OTF/BeaufortforLOL-HeavyItalic.otf') format('opentype');
+    font-weight: 800; /* Heavy */
+    font-style: italic;
+  }
+  
+  @font-face {
+    font-family: 'Beaufort for LOL';
+    src: url('~@/assets/fonts/BeaufortForLoL-OTF/BeaufortforLOL-Italic.otf') format('opentype');
+    font-weight: 400; /* Regular */
+    font-style: italic;
+  }
+  
+  @font-face {
+    font-family: 'Beaufort for LOL';
+    src: url('~@/assets/fonts/BeaufortForLoL-OTF/BeaufortforLOL-Light.otf') format('opentype');
+    font-weight: 300; /* Light */
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'Beaufort for LOL';
+    src: url('~@/assets/fonts/BeaufortForLoL-OTF/BeaufortforLOL-LightItalic.otf') format('opentype');
+    font-weight: 300; /* Light */
+    font-style: italic;
+  }
+  
+  @font-face {
+    font-family: 'Beaufort for LOL';
+    src: url('~@/assets/fonts/BeaufortForLoL-OTF/BeaufortforLOL-MediumItalic.otf') format('opentype');
+    font-weight: 500; /* Medium */
+    font-style: italic;
   }
 
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+
+body {
+    background-color: #010a14;
+    color: white;
+    font-family: Roboto;
+    /* background-image: linear-gradient(to bottom, #070b12, #070b12, #070b12, #070b12, #070b12, #080e15, #091117, #0a1319, #0b181d, #0c1c21, #0c2123, #0d2525); */
 }

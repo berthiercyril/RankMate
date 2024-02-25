@@ -28,3 +28,7 @@ Une fois l'application lancée, vous pouvez rejoindre un groupe en saisissant un
 ## Licence
 
 Ce projet est sous licence [MIT](https://opensource.org/licenses/MIT).
+
+
+Revoir la gestion de user / currentUser
+Faire l'enregistrement dans firebase et store correctement
