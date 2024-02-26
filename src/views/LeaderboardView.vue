@@ -1,5 +1,6 @@
 <script setup>
 import UserProfileBar from '../components/UserProfileBar.vue'
+import Navbar from '../components/Navbar.vue';
 import { ref, computed, watchEffect, onMounted, watch} from 'vue';
 import { useStore } from 'vuex';
 import { getDatabase, ref as firebaseRef, push as dbPush, set as dbSet } from 'firebase/database'; 
@@ -9,7 +10,7 @@ const store = useStore();
 const groupName = ref('');
 const groupCode = ref('');
 
-
+console.log(store.state);
 
 
 const createGroup = async () => {
@@ -105,17 +106,19 @@ watchEffect(() => {
   if (Object.keys(store.state.profiles).length > 0 && store.state.groups.length > 0) {
     console.log('test', store.state.profiles);
     sortedUsers.value = store.state.groups[0].members
-      .map(memberId => {
+      .map(memberId =>{
         const user = store.state.users.find(user => user.id === memberId);
-        const profile = store.state.profiles[memberId];
+        const profile = store.state.profiles.find(profile => profile.id === memberId);
         if (user && profile) {
+
           return {
             id: user.id,
             pseudo: user.pseudo,
             tag: user.tag,
             tier: profile.tier === 'Unranked' ? -1 : tierValues[profile.tier.toUpperCase()],
             rank: profile.rank === '' ? -1 : rankValues[profile.rank],
-            leaguePoints: profile.leaguePoints === '' ? -1 : profile.leaguePoints
+            leaguePoints: profile.leaguePoints === '' ? -1 : profile.leaguePoints,
+            medal: ''
           };
         } else {
           console.log(`No user or profile found for member ${memberId}`);
@@ -143,6 +146,18 @@ watchEffect(() => {
         const pointsComparison = b.leaguePoints - a.leaguePoints;
         return pointsComparison;
       });
+
+      // Attribution des médailles après le tri
+      if (sortedUsers.value.length > 0) {
+        sortedUsers.value[0].medal = 'gold';
+      }
+      if (sortedUsers.value.length > 1) {
+        sortedUsers.value[1].medal = 'silver';
+      }
+      if (sortedUsers.value.length > 2) {
+        sortedUsers.value[2].medal = 'bronze';
+      }
+
     console.log('Sorted users:', sortedUsers.value);
   }
 });
@@ -173,10 +188,14 @@ watchEffect(() => {
   }
 });
 
+const currentUser = store.state.currentUser;
+const currentUserProfile = currentUser ? store.state.profiles.find(profile => profile.id === currentUser.id) : null;
+
 </script>
 
 
 <template>
+  <Navbar :profileIconUrl="currentUserProfile ? currentUserProfile.profileIconUrl : ''" :pseudo="currentUser ? currentUser.pseudo : ''" />  
   <main>
     <div class="container pt-5">
       <h1 class="mb-5">Classements</h1>
@@ -202,13 +221,18 @@ watchEffect(() => {
       </div>
 
       <!-- Nav tabs -->
-      <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item" role="presentation" v-for="group in userGroups" :key="group.id">
-          <button class="nav-link" :class="{ active: activeGroupId === group.id }" @click="activeGroupId = group.id">
-            {{ group.name }}
-          </button>
-        </li>
-      </ul>
+      <div class="d-flex justify-content-between">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+          <li class="nav-item" role="presentation" v-for="group in userGroups" :key="group.id">
+            <button class="nav-link" :class="{ active: activeGroupId === group.id }" @click="activeGroupId = group.id">
+              {{ group.name }}
+            </button>
+          </li>
+        </ul>
+        <button class="btn refresh" @click="fetchData">
+          actualiser les données <i class="fa-solid fa-rotate-right"></i>
+        </button>
+      </div>
 
       <div class="tab-content">
         <div v-for="(group, groupIndex) in userGroups" :key="group.id" 
@@ -221,6 +245,7 @@ watchEffect(() => {
               :summonerName="user.pseudo"
               :tag="user.tag"
               :idUser="user.id"
+              :medal="user.medal"
             />
         </div>
       </div>
@@ -231,24 +256,38 @@ watchEffect(() => {
 
 <style scoped>
   .nav-link {
-    color: #ffffff;
+    color: #F7EBEC;
+    background-color: #0E6BA8;
   }
 
   .nav-link.active {
-    background-color: #00c6ba;
+    background-color: #1395ec;
+    color: #F7EBEC;
     border: none;
   }
 
   .btn-custom {
   /* width: 40%; Ajustez cette valeur en fonction de vos besoins */
-  background-color: #00c6ba;
-  color: white;
+  background-color: #0E6BA8;
+  color: #F7EBEC;
   }
 
   .btn-custom:hover {
   /* width: 40%; Ajustez cette valeur en fonction de vos besoins */
-  background-color: #05aca0;
-  color: rgb(255, 255, 255);
+  background-color: #1395ec;
+  color: #F7EBEC;
+  }
+
+  .refresh {
+    color: #F7EBEC;
+    background-color: #0E6BA8;
+    border: none;
+  }
+
+  .refresh:hover {
+    color: #F7EBEC;
+    background-color: #1395ec;
+    border: none;
   }
 
 </style>

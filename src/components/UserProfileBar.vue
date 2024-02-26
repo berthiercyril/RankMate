@@ -11,7 +11,7 @@
 
     <!-- Affiche les données si isLoading est false -->
     <div v-else >
-      <div class="d-flex justify-content-between align-items-center mt-4">
+      <div class="d-flex justify-content-between align-items-center mt-4 profile">
         <div class="d-flex align-items-start">
           <div class="image-wrapper">
               <div class="image-container d-flex justify-content-center align-items-center">
@@ -20,18 +20,27 @@
               <span class="level position-absolute bottom-0 start-50 translate-middle-x text-white"> {{ summonerLevel }} </span>
             </div>
           <div class="ms-3 mt-2">
-            <span class="text-white">{{ pseudo }}</span>
+            <span class="pseudo">{{ pseudo }}</span>
+            <i v-if="medal === 'gold'" class="fa-solid fa-medal ms-2" style="color: #FFD700;"></i>
+            <i v-if="medal === 'silver'" class="fa-solid fa-medal ms-2" style="color: #C0C0C0;"></i>
+            <i v-if="medal === 'bronze'" class="fa-solid fa-medal ms-2" style="color: #CD7F32;"></i>
             <div>
-              <span> {{ tier }} </span>
-              <span>  {{ rank }} </span>
-              <span> {{ leaguePoints }} lp </span>
-              <span> lvl {{ summonerLevel }}</span>
+              <span class="me-1"> {{ tier }} </span>
+              <span class="me-3">  {{ rank }} </span>
+              <span v-if="tier !== 'Unranked'" class="me-1 number"> {{ leaguePoints }}</span>
+              <span v-if="tier !== 'Unranked'" class="number">LP</span>
+            </div>
+            <div v-if="tier !== 'Unranked'" class="number">
+              <span> {{ wins }} </span>
+              <span class="me-2">W</span>
+              <span> {{ losses }} </span>
+              <span>L</span>
             </div>
           </div>
         </div>
-        <button class="btn">
-          <i class="fa-solid fa-ellipsis-vertical option"></i>
-        </button>
+        <!-- <button class="btn refresh" @click="fetchData">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button> -->
       </div>
     </div>
   </div>
@@ -42,7 +51,7 @@ import axios from 'axios';
 import { mapActions, mapState } from 'vuex';
 
 export default {
-  props: ['summonerName', 'tag', 'idUser'],
+  props: ['summonerName', 'tag', 'idUser', 'medal'],
 
 
 //   data() {
@@ -132,7 +141,6 @@ export default {
 //       });
 //   } 
 // },
-
 data() {
     return {
       isLoading: true,
@@ -167,6 +175,12 @@ data() {
     summonerLevel() {
       return this.profile?.summonerLevel;
     },
+    wins() {
+      return this.profile?.wins;
+    },
+    losses() {
+      return this.profile?.losses;
+    },
   },
 
   methods: {
@@ -200,11 +214,8 @@ data() {
 
 <style scoped>
 .option {
-  color: #ffffff;
+  color: #F7EBEC;
   font-size: 24px;
-}
-.option:hover {
-  color: #d3fbd8;
 }
 
 .image-container {
@@ -234,6 +245,12 @@ data() {
   align-items: flex-end; /* Ajouté pour centrer le texte verticalement */
   width: 40px; /* Ajustez à la taille souhaitée */
   height: 30px; /* Ajustez à la taille souhaitée */
+  font-family: 'Beaufort for LOL';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 12pt;
+  letter-spacing: 0.02em;
+  line-height: 20pt;
 }
 
 .level::before {
@@ -248,6 +265,13 @@ data() {
   z-index: -1;
 }
 
+.pseudo {
+  font-size: 20px;
+  font-weight: 700;
+}
 
+.profile{
+  border-bottom: 1px solid #dadfed50;
+}
 
 </style>

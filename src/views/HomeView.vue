@@ -1,13 +1,22 @@
 <script setup>
-import UserProfileBar from '../components/UserProfileBar.vue'
+import ChampionCard from '../components/ChampionCard.vue';
+import Navbar from '../components/Navbar.vue';
+
+
+import AOS from 'aos';
+import 'aos/dist/aos.css'; // Importez le CSS de AOS
+
 import { useStore } from 'vuex';
 import { ref, push, set } from "firebase/database";
 import { db } from "../store/index"; // Assurez-vous que ce chemin d'importation est correct
-import { ref as vueRef } from 'vue';
+import { ref as vueRef, watch } from 'vue';
+
+
 
 const store = useStore();
 console.log(store.state);
 // store.commit('resetCurrentUser');
+// store.commit('resetFreeChampions');
 // store.dispatch('subscribeToDataUpdates');
 
 const resetStore = () => {
@@ -18,52 +27,52 @@ const resetStore = () => {
 
 const pseudo = vueRef(''); // Create a reactive variable for the pseudo
 const tag = vueRef(''); // Create a reactive variable for the tag
+const message = vueRef(''); // Create a reactive variable for the message
 
-const createUser = () => {
+const createUser = async () => {
   const user = { pseudo: pseudo.value, tag: tag.value };
-  store.dispatch('addUser', user);
-  store.commit('setCurrentUser', user);
+  message.value = await store.dispatch('addUser', user);
+
 };
 
-// Expose createUser and pseudo to the template
-const expose = { createUser, pseudo };
+console.log(store.state.profiles);
+
 
 const currentUser = store.state.currentUser;
+const currentUserProfile = currentUser ? store.state.profiles.find(profile => profile.id === currentUser.id) : null;
+
+let showJoinButton = vueRef(!store.state.currentUser);
+
+watch(() => store.state.currentUser, (newVal, oldVal) => {
+  console.log('currentUser changed from', oldVal, 'to', newVal);
+  showJoinButton.value = !newVal;
+});
+
+// Expose createUser and pseudo to the template
+const expose = { createUser, pseudo, showJoinButton, message };
 
 </script>
 
 <template>
+  <Navbar :profileIconUrl="currentUserProfile ? currentUserProfile.profileIconUrl : ''" :pseudo="currentUser ? currentUser.pseudo : ''" />  
   <main>
-    <div class="text-center py-custom background-image">
+    <div class="text-center py-custom background-image" data-aos="fade-up">
       <div class="content">
-        <h1 class="fw-bold text-white mt-3">Bienvenue sur Rank<span class="text-green fw-bold">mate</span> !
-        </h1>
+        <h1 class="fw-bold text-white mt-3" data-aos="zoom-in" data-aos-delay="100">Bienvenue sur Rank<span class="text-green fw-bold">mate</span> !</h1>
         <div class="container">
-          <p class="mt-4 text-white fw-semibold">Rejoignez ou créez un groupe sur notre application web League of Legends pour suivre le classement de vos amis. Restez compétitif et amusez-vous en visualisant les progrès de chacun. Que vous soyez un vétéran de la ligue ou un débutant, il n'a jamais été aussi facile de rester connecté et engagé avec vos amis !</p>
+          <p class="mt-4 text-white fw-semibold" data-aos="fade-up" data-aos-delay="400">Rejoignez ou créez un groupe sur notre application web League of Legends pour suivre le classement de vos amis. Restez compétitif et amusez-vous en visualisant les progrès de chacun. Que vous soyez un vétéran de la ligue ou un débutant, il n'a jamais été aussi facile de rester connecté et engagé avec vos amis !</p>
         </div>
-        <!-- <button type="button" class="btn-custom btn mt-3 me-5">Rejoindre un groupe</button> -->
-        <!-- <button type="button" class="btn-custom btn mt-3 me-5" data-bs-toggle="modal" data-bs-target="#joinGroupModal">Rejoindre un groupe</button> -->
-
-        <!-- <button type="button" class="btn-custom btn mt-3 ms-5">Créer un groupe</button> -->
-        <!-- <button type="button" class="btn-custom btn mt-3 ms-5" data-bs-toggle="modal" data-bs-target="#createGroupModal">Créer un groupe</button> -->
-        <button type="button" class="btn-custom btn mt-3" data-bs-toggle="modal" data-bs-target="#registerModal">Rejoignez-nous</button>
-        <button @click="resetStore" class="btn-custom btn mt-3 ms-5">Reset Store</button>
-        
-
+        <button type="button" class="btn-custom btn mt-3" data-aos="fade-up" data-aos-delay="500" data-bs-toggle="modal" data-bs-target="#registerModal" v-if="showJoinButton">Rejoignez-nous</button>
+        <!-- <button @click="resetStore" class="btn-custom btn mt-3 ms-5" data-aos="fade-up" data-aos-delay="500">Reset Store</button> -->
       </div>
     </div>
 
     <div class="container text-start py-5">
-      <h2 class="mb-5 ">Rotation champions gratuit</h2>
+      <h2 class="mb-5 " data-aos="fade-up" data-aos-delay="800">Rotation champions gratuit</h2>
       <div class="row">
-        <div class="col-sm-2 mb-5 card-champion" v-for="n in 10" :key="n">
-          <div class="card-img"></div>
-          <div class="card-text ps-3"><span class="inner-text">Aatrox</span></div>
-        </div>
+        <ChampionCard/>
       </div>
     </div>
-
-
   </main>
 
 
@@ -101,9 +110,9 @@ const currentUser = store.state.currentUser;
   </div>
 </div> -->
 
-<!-- Modal register group -->
+<!-- Modal register user -->
 <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
         <!-- <div class="modal-header">
         <h1 class="modal-title fs-5" id="exampleModalLabel">Créer un groupe</h1>
@@ -117,6 +126,10 @@ const currentUser = store.state.currentUser;
             <input v-model="tag" type="tag" class="form-control fw-semibold" placeholder="EUW" aria-describedby="basic-addon1">
             <button type="button" class="btn-custom btn" @click="createUser">Rejoindre</button>
           </div>
+          <div class="alert p-0 m-0 text-danger" role="alert" v-if="message">
+            <span class="fs-6"><i class="fa-solid fa-triangle-exclamation"></i> {{message}}</span>
+          </div>
+
         </div>
     </div>
   </div>
@@ -125,16 +138,17 @@ const currentUser = store.state.currentUser;
 </template>
 
 <style scoped>
+
 .btn-custom {
 /* width: 40%; Ajustez cette valeur en fonction de vos besoins */
-background-color: #00c6ba;
-color: white;
+background-color: #0E6BA8;
+color: #F7EBEC;
 }
 
 .btn-custom:hover {
 /* width: 40%; Ajustez cette valeur en fonction de vos besoins */
-background-color: #05aca0;
-color: rgb(255, 255, 255);
+background-color: #1395ec;
+color: #F7EBEC;
 }
 
 .text-green {
@@ -156,9 +170,10 @@ top: 0;
 right: 0;
 bottom: 0;
 left: 0;
-background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 50%, #070B12 100%), 
-            linear-gradient(to right, #070B12, rgba(255,255,255,0) 50%, #070B12),
-            linear-gradient(to top, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 50%, #070B12 100%);
+background: linear-gradient(to bottom, rgba(255,255,255,0) 90%, rgba(255,255,255,0) 0%, #010a14 100%), 
+            linear-gradient(to right, #010a14, rgba(255,255,255,0) 30%, #010a14),
+            linear-gradient(to left, #010a14, rgba(255,255,255,0) 30%, #010a14),
+            linear-gradient(to top, rgba(255,255,255,0) 90%, rgba(255,255,255,0) 0%, #010a14 100%);
 background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -173,8 +188,8 @@ padding-bottom: 8%;
 }
 
 .modal-content {
-background-color: #070b1200;
-/* border-color: white; */
+background-color: #010a14;
+border: #F7EBEC 1px solid;
 }
 
 .modal-header {
@@ -186,70 +201,9 @@ border: none;
 }
 
 .hastag{
-background-color: #00c6ba;
-border-color: #00c6ba;
-color: white;
-}
-
-.card-img {
-  background-position: 80% center;
-  transition: transform 0.3s ease-in-out; /* Ajoute une transition */
-  /* background-image: url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Aatrox_0.jpg'); */
-  background-size: cover; 
-  background-repeat: no-repeat; 
-  height: 280px;
-  width: 200px;
-}
-
-.card-text {
-  color: #e8e6e3;
-  background-color: #05161e;
-  font-size: 20px;
-  width: 200px;
-  padding: 10px;
-  text-transform: uppercase;
-  font-style: italic;
-  /* font-family: "Beaufort for LOL"; */
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.card-champion:hover .card-text {
-  background-color: #005266;
-}
-
-.card-text .inner-text {
-  display: inline-block;
-  transition: transform 0.3s ease-in-out; /* Ajoute une transition */
-}
-
-.card-champion:hover .card-text .inner-text {
-  transform: translateX(10px); /* Décale le texte lors du survol */
-}
-
-
-.card-champion .card-img {
-  position: relative;
-  overflow: hidden; /* Cache les parties de l'image qui dépassent */
-}
-
-.card-champion .card-img::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Aatrox_0.jpg');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: 80% center;
-  transition: transform 0.3s ease-in-out;
-  clip-path: polygon(90% 0, 100% 8%, 100% 100%, 50% 100%, 0 100%, 0 0);
-}
-
-.card-champion:hover .card-img::before {
-  transform: scale(1.1); /* Réduit la taille de l'image lors du survol */
+background-color: #0E6BA8;
+border-color: #0E6BA8;
+color: #F7EBEC;
 }
 
 
