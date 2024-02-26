@@ -221,7 +221,7 @@ const currentUserProfile = currentUser ? store.state.profiles.find(profile => pr
       </div>
 
       <!-- Nav tabs -->
-      <div class="d-flex justify-content-between">
+      <div class="d-flex justify-content-between nav-group">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
           <li class="nav-item" role="presentation" v-for="group in userGroups" :key="group.id">
             <button class="nav-link" :class="{ active: activeGroupId === group.id }" @click="activeGroupId = group.id">
@@ -288,6 +288,10 @@ const currentUserProfile = currentUser ? store.state.profiles.find(profile => pr
     color: #F7EBEC;
     background-color: #1395ec;
     border: none;
+  }
+
+  .nav-group {
+    border-bottom: 1px solid #dadfed50;
   }
 
 </style>

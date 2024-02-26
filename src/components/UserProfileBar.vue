@@ -11,13 +11,13 @@
 
     <!-- Affiche les données si isLoading est false -->
     <div v-else >
-      <div class="d-flex justify-content-between align-items-center mt-4 profile">
-        <div class="d-flex align-items-start">
+      <div class="d-flex justify-content-between align-items-center mt-4 p-3 profile rounded">
+        <div class="d-flex align-items-center">
           <div class="image-wrapper">
               <div class="image-container d-flex justify-content-center align-items-center">
                 <img :src="profileIconUrl" class="rounded-circle profil-image" alt="Photo de profil" style="width:80px; height:80px;">
               </div>
-              <span class="level position-absolute bottom-0 start-50 translate-middle-x text-white"> {{ summonerLevel }} </span>
+              <span class="level position-absolute start-50 translate-middle-x text-white"> {{ summonerLevel }} </span>
             </div>
           <div class="ms-3 mt-2">
             <span class="pseudo">{{ pseudo }}</span>
@@ -231,11 +231,12 @@ data() {
 
 
 .image-wrapper {
-  height: 103px; /* Ajustez à la taille souhaitée */
+  /* height: 103px; */
   position: relative;
 }
 
 .level {
+  top: 75px;
   position: relative;
   padding: 8px;
   background: #996515; background: linear-gradient(to bottom, #996515 0%, #8A5606 100%); background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #996515), color-stop(100%, #8A5606)); background: -webkit-linear-gradient(top, #996515 0%, #8A5606 100%); background: -moz-linear-gradient(top, #996515 0%, #8A5606 100%); background: -o-linear-gradient(top, #996515 0%, #8A5606 100%); background: -ms-linear-gradient(top, #996515 0%, #8A5606 100%); filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#996515', endColorstr='#8A5606', GradientType=0); border: 1px solid #7B4700; box-shadow: inset 0 1px 0 #A87424; -webkit-box-shadow: inset 0 1px 0 #A87424; -moz-box-shadow: inset 0 1px 0 #A87424;
@@ -271,7 +272,9 @@ data() {
 }
 
 .profile{
-  border-bottom: 1px solid #dadfed50;
+  /* border-bottom: 1px solid #dadfed50; */
+  background-color: #031D3A;
+  border-left: #0E6BA8 6px solid;
 }
 
 </style>
