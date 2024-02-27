@@ -2,17 +2,18 @@
     <nav  :class="['navbar sticky-top', { 'opacity-75': isScrolled }]">
     <div id="nav" class="container-fluid">
         <router-link class="navbar-brand text-white rankmate" to="/">
-          <i class="fa-solid fa-shield-halved" style="color: #00c6ba;"></i>
+          <i class="fa-solid fa-shield-halved" style="color: #DFA253;"></i>
           <span class="rank ms-2">Rank</span>
           <span class="mate">mate</span>
         </router-link>
         <form class="d-flex" role="search">
           <!-- <router-link class="navbar-brand text-menu me-4" to="/">Accueil</router-link> -->
           <!-- <router-link class="navbar-brand text-menu me-4" to="#">Champions</router-link> -->
-          <router-link class="navbar-brand text-menu me-5" to="/leaderboard" v-if="currentUser?.pseudo && currentUserProfile?.profileIconUrl">Classements</router-link>
+          <router-link class="navbar-menu text-menu me-5" to="/" v-if="currentUser?.pseudo && currentUserProfile?.profileIconUrl" active-class="active">Accueil</router-link>
+          <router-link class="navbar-menu text-menu me-5" to="/leaderboard" v-if="currentUser?.pseudo && currentUserProfile?.profileIconUrl" active-class="active">Classements</router-link>
           <div class="dropdown" v-if="currentUser?.pseudo && currentUserProfile?.profileIconUrl">
             <div class="text-uppercase d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <span class="me-3">{{ currentUser.pseudo }}</span>
+              <span class="me-3 pseudo">{{ currentUser.pseudo }}</span>
               <img class="profile-img" :src="currentUserProfile.profileIconUrl" alt="">
             </div>
             <ul class="dropdown-menu center-dropdown p-0">
@@ -32,6 +33,7 @@
     data() {
       return {
         isScrolled: false,
+        hoveredLink: null,
       };
     },
     created() {
@@ -78,12 +80,12 @@
   
   <style scoped>
     .navbar{
-      border-bottom: 1px solid #dadfed50;
-      background-color: #010a14;
+      border-bottom: 2px solid #423524;
+      background-color: #021327;
     }
 
     .mate {
-      color: #00c6ba;
+      color: #DFA253;
     }
 
     .rankmate {
@@ -95,7 +97,7 @@
     }
 
     .text-menu:hover {
-      color: #00c6ba;
+      color: #DFA253;
     }
 
     .text-menu {
@@ -153,6 +155,45 @@
     .center-dropdown {
       left: 50%;
       transform: translateX(-50%);
+    }
+
+    .active {
+      color: #DFA253;
+    }
+
+    .navbar-menu {
+      position: relative;
+      text-decoration: none;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      font-size: 18pt;
+    }
+
+    .navbar-menu::after {
+      content: '';
+      position: absolute;
+      bottom: -13px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: #DFA253;
+      transform: scaleX(0);
+      transform-origin: 0%;
+      transition: transform 0.3s ease-out;
+    }
+
+    .navbar-menu:hover::after {
+      transform: scaleX(1);
+    }
+
+    .pseudo{
+      font-family: 'Beaufort for LOL', sans-serif;
+      font-style: normal;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      font-size: 14pt;
     }
 
 

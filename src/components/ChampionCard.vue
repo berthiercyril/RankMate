@@ -3,7 +3,7 @@
         <div class="card-img rounded-top">
             <div class="img-inner" :style="{ 'background-image': `url(${champion.imageUrl})`}"></div>
         </div>
-        <div class="card-text ps-3"><span class="inner-text">{{ champion.name }}</span></div>
+        <div class="card-text rounded-bottom ps-3"><span class="inner-text">{{ champion.name }}</span></div>
     </div>
 </template>
 
@@ -63,7 +63,7 @@ export default {
 
 .card-text {
   color: #F7EBEC;
-  background-color: #05161e;
+  background-color: hsl(199, 100%, 12%);
   font-size: 20px;
   width: 100%;
   padding: 10px;

@@ -67,6 +67,8 @@ const expose = { createUser, pseudo, showJoinButton, message };
       </div>
     </div>
 
+
+
     <div class="container text-start py-5">
       <h2 class="mb-5 " data-aos="fade-up" data-aos-delay="800">Rotation champions gratuit</h2>
       <div class="row">
@@ -121,9 +123,9 @@ const expose = { createUser, pseudo, showJoinButton, message };
         <div class="modal-body">
           <div class="input-group">
             <!-- <span class="input-group-text" id="basic-addon1">Code du groupe</span> -->
-            <input v-model="pseudo" type="username" class="form-control fw-semibold" placeholder="Pseudo" aria-label="pseudo" aria-describedby="basic-addon1">
+            <input v-model="pseudo" type="username" class="form-control fw-semibold input" placeholder="Pseudo" aria-label="pseudo" aria-describedby="basic-addon1">
             <span class="input-group-text hastag fw-bold">#</span>
-            <input v-model="tag" type="tag" class="form-control fw-semibold" placeholder="EUW" aria-describedby="basic-addon1">
+            <input v-model="tag" type="tag" class="form-control fw-semibold input" placeholder="EUW" aria-describedby="basic-addon1">
             <button type="button" class="btn-custom btn" @click="createUser">Rejoindre</button>
           </div>
           <div class="alert p-0 m-0 text-danger" role="alert" v-if="message">
@@ -152,7 +154,7 @@ color: #F7EBEC;
 }
 
 .text-green {
-color: #00c6ba;
+color: #DFA253;
 }
 
 .background-image{
@@ -170,10 +172,10 @@ top: 0;
 right: 0;
 bottom: 0;
 left: 0;
-background: linear-gradient(to bottom, rgba(255,255,255,0) 90%, rgba(255,255,255,0) 0%, #010a14 100%), 
-            linear-gradient(to right, #010a14, rgba(255,255,255,0) 30%, #010a14),
-            linear-gradient(to left, #010a14, rgba(255,255,255,0) 30%, #010a14),
-            linear-gradient(to top, rgba(255,255,255,0) 90%, rgba(255,255,255,0) 0%, #010a14 100%);
+background: linear-gradient(to bottom, rgba(255,255,255,0) 90%, rgba(255,255,255,0) 0%, #021327 100%), 
+            linear-gradient(to right, #021327, rgba(255,255,255,0) 30%, #021327),
+            linear-gradient(to left, #021327, rgba(255,255,255,0) 30%, #021327),
+            linear-gradient(to top, rgba(255,255,255,0) 90%, rgba(255,255,255,0) 0%, #021327 100%);
 background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -201,9 +203,14 @@ border: none;
 }
 
 .hastag{
-background-color: #0E6BA8;
-border-color: #0E6BA8;
+background-color: #DFA253;
+border-color: #DFA253;
 color: #F7EBEC;
+}
+
+.input{
+  box-shadow: none;
+  border-color: #DFA253;
 }
 
 

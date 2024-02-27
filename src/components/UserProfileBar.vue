@@ -274,7 +274,7 @@ data() {
 .profile{
   /* border-bottom: 1px solid #dadfed50; */
   background-color: #031D3A;
-  border-left: #0E6BA8 6px solid;
+  border-left: #DFA253 6px solid;
 }
 
 </style>
