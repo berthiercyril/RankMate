@@ -51,7 +51,8 @@ import axios from 'axios';
 import { mapActions, mapState } from 'vuex';
 
 export default {
-  props: ['summonerName', 'tag', 'idUser', 'medal'],
+  props: ['summonerName', 'tag', 'idUser', 'medal', 'groupId'],
+
 
 
 //   data() {
@@ -149,7 +150,7 @@ data() {
 
   computed: {
     profile() {
-      return this.$store.state.profiles[this.idUser];
+      return this.$store.state.profiles.find(profile => profile.id === this.idUser);
     },
 
     profileIconUrl() {
@@ -195,7 +196,7 @@ data() {
       this.isLoading = true;
 
       try {
-        await this.fetchProfile({ summonerName: this.summonerName, tag: this.tag, idUser: this.idUser});
+        await this.fetchProfile({ summonerName: this.summonerName, tag: this.tag, idUser: this.idUser, groupId: this.groupId});
         this.isLoading = false;
       } catch (error) {
         console.error(error);

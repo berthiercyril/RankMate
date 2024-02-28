@@ -15,12 +15,15 @@ import { ref as vueRef, watch } from 'vue';
 
 const store = useStore();
 console.log(store.state);
+
+let showJoinButton = vueRef(!store.state.currentUser);
+
 // store.commit('resetCurrentUser');
 // store.commit('resetFreeChampions');
 // store.dispatch('subscribeToDataUpdates');
 
 const resetStore = () => {
-  store.commit('resetState');
+  store.commit('resetCurrentUser');
   console.log("le store a été réinitialisé");
   console.log(store.state);
 };
@@ -41,15 +44,18 @@ console.log(store.state.profiles);
 const currentUser = store.state.currentUser;
 const currentUserProfile = currentUser ? store.state.profiles.find(profile => profile.id === currentUser.id) : null;
 
-let showJoinButton = vueRef(!store.state.currentUser);
+// Expose createUser and pseudo to the template
+const expose = { createUser, pseudo, showJoinButton, message };
 
 watch(() => store.state.currentUser, (newVal, oldVal) => {
   console.log('currentUser changed from', oldVal, 'to', newVal);
   showJoinButton.value = !newVal;
+  // Si newVal (le nouvel utilisateur actuel) n'est pas null, dispatch initializeData
+  // if (newVal) {
+  //   console.log('New user detected, initializing data');
+  //   store.dispatch('initializeData');
+  // }
 });
-
-// Expose createUser and pseudo to the template
-const expose = { createUser, pseudo, showJoinButton, message };
 
 </script>
 
@@ -63,7 +69,7 @@ const expose = { createUser, pseudo, showJoinButton, message };
           <p class="mt-4 text-white fw-semibold" data-aos="fade-up" data-aos-delay="400">Rejoignez ou créez un groupe sur notre application web League of Legends pour suivre le classement de vos amis. Restez compétitif et amusez-vous en visualisant les progrès de chacun. Que vous soyez un vétéran de la ligue ou un débutant, il n'a jamais été aussi facile de rester connecté et engagé avec vos amis !</p>
         </div>
         <button type="button" class="btn-custom btn mt-3" data-aos="fade-up" data-aos-delay="500" data-bs-toggle="modal" data-bs-target="#registerModal" v-if="showJoinButton">Rejoignez-nous</button>
-        <!-- <button @click="resetStore" class="btn-custom btn mt-3 ms-5" data-aos="fade-up" data-aos-delay="500">Reset Store</button> -->
+        <button @click="resetStore" class="btn-custom btn mt-3 ms-5" data-aos="fade-up" data-aos-delay="500">Reset CurrentUser</button>
       </div>
     </div>
 

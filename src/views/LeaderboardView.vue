@@ -99,9 +99,9 @@ const groupMembersDetails = computed(() => {
 let sortedUsers = ref([]);
 
 watchEffect(() => {
-  console.log('Members:', store.state.groups[0].members);
-  console.log('Users:', store.state.users);
-  console.log('Profiles:', store.state.profiles);
+  // console.log('Members:', store.state.groups[0].members);
+  // console.log('Users:', store.state.users);
+  // console.log('Profiles:', store.state.profiles);
 
   if (Object.keys(store.state.profiles).length > 0 && store.state.groups.length > 0) {
     console.log('test', store.state.profiles);
@@ -246,6 +246,7 @@ const currentUserProfile = currentUser ? store.state.profiles.find(profile => pr
               :tag="user.tag"
               :idUser="user.id"
               :medal="user.medal"
+              :groupId="group.id"
             />
         </div>
       </div>

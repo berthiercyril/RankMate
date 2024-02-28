@@ -52,18 +52,38 @@ export default createStore({
       state.groups = [...state.groups, newGroup]; // Add the new group to the groups array first
       const groupRef = ref(db, 'groups/' + group.id);
       await set(groupRef, newGroup); // Then create the group in Firebase
+
+      // Join the group after it's created
+      await this.commit('joinGroup', { group: newGroup, user: { id: newGroup.members[0]} });
     },
     async joinGroup(state, { group, user }) {
+      console.log('Joining group:', group, 'User:', user)
       const groupToJoin = state.groups.find(g => g.code === group.code);
       if (groupToJoin) {
         if (!groupToJoin.members.includes(user.id)) { // Check if the user's ID is already in the group's members
           groupToJoin.members.push(user.id); // Add the user's ID to the group's members
           const groupRef = ref(db, 'groups/' + groupToJoin.id); // Use the group's ID as the key
           await update(groupRef, { members: groupToJoin.members }); // Update the group's members in Firebase
-  
-          // Fetch the user's profile and add it to the store
-          // this.dispatch('fetchProfile', { summonerName: user.summonerName, tag: user.tag, idUser: user.id });
         }
+    
+        // Fetch the user's data from Firebase
+        const userRef = ref(db, 'users/' + user.id);
+        const userSnapshot = await get(userRef);
+        const userData = userSnapshot.val();
+    
+        // Add the group's ID to the user's groups
+        if (!userData.groups) {
+          userData.groups = [];
+        }
+        if (!userData.groups.includes(groupToJoin.id)) {
+          userData.groups.push(groupToJoin.id);
+        }
+    
+        // Update the user's data in Firebase
+        await update(userRef, userData);
+        console.log('User joined group:', groupToJoin);
+        // Fetch the user's profile and add it to the store
+        // this.dispatch('fetchProfile', { summonerName: user.summonerName, tag: user.tag, idUser: user.id });
       }
     },
     addUserToState(state, user) {
@@ -90,22 +110,24 @@ export default createStore({
     async setProfile(state, { idUser, summonerName, tag, data }) {
       const profileRef = ref(db, 'profiles/' + idUser);
       let snapshot = await get(profileRef);
-      
+    
       // Si les données de profil n'existent pas dans Firebase, ajoutez-les
       if (!snapshot.exists()) {
         console.log('Adding profile to Firebase')
         await set(profileRef, data);
         snapshot = await get(profileRef); // Récupérez à nouveau les données pour vous assurer qu'elles ont été ajoutées
-        state.profiles[idUser] = { id: idUser, ...snapshot.val() }; // Ajoutez le profil au store `profiles`
+        state.profiles.push({ id: idUser, ...snapshot.val() }); // Ajoutez le profil au tableau `profiles`
         console.log('le profil est ajouté dans le store')
-        console.log('state.profiles[idUser]=',state.profiles[idUser])
         console.log('state.profiles=',state.profiles) // Add this line
       } else {
         // Si les données de profil existent déjà, mettez-les à jour avec les nouvelles données
         console.log('Updating profile in Firebase')
         await update(profileRef, data);
         snapshot = await get(profileRef); // Récupérez à nouveau les données pour vous assurer qu'elles ont été mises à jour
-        state.profiles[idUser] = { id: idUser, ...snapshot.val() }; // Mettez à jour le profil dans le store `profiles`
+        const index = state.profiles.findIndex(profile => profile.id === idUser); // Trouvez l'index du profil à mettre à jour
+        if (index !== -1) {
+          state.profiles[index] = { id: idUser, ...snapshot.val() }; // Mettez à jour le profil dans le tableau `profiles`
+        }
         console.log('state.profiles=',state.profiles) // Add this line
       }
     },
@@ -128,6 +150,84 @@ export default createStore({
     },
   },
   actions: {
+    async initializeData({ commit, state }) {
+      const db = getDatabase();
+      
+      // Récupérer l'ID de l'utilisateur actuel
+      const currentUserId = state.currentUser.id;
+    
+      // Récupérer l'utilisateur actuel de Firebase
+      const userRef = ref(db, '/users/' + currentUserId);
+      const userSnapshot = await get(userRef);
+      if (!userSnapshot.exists()) {
+        throw new Error('No user data available');
+      }
+      const currentUser = userSnapshot.val();
+    
+      // Récupérer le profil de l'utilisateur actuel de Firebase
+      const profileRef = ref(db, '/profiles/' + currentUserId);
+      const profileSnapshot = await get(profileRef);
+      if (!profileSnapshot.exists()) {
+        return;
+      }
+      const currentProfile = profileSnapshot.val();
+    
+      // Si l'utilisateur actuel n'a pas de groupes, récupérer seulement les données de l'utilisateur et du profil
+      if (!currentUser.groups || currentUser.groups.length === 0) {
+        console.log('No groups available');
+        commit('setUsers', [currentUser]);
+        commit('setProfiles', [currentProfile]);
+        return;
+      }
+    
+      // Récupérer les groupes de l'utilisateur actuel de Firebase
+      const groupPromises = currentUser.groups.map(groupId => {
+        const groupRef = ref(db, '/groups/' + groupId);
+        return get(groupRef);
+      });
+      const groupSnapshots = await Promise.all(groupPromises);
+    
+      // Vérifier si chaque snapshot existe avant d'utiliser snapshot.val()
+      const currentUserGroups = groupSnapshots.reduce((groups, snapshot) => {
+        if (snapshot && snapshot.exists()) {
+          groups.push(snapshot.val());
+        }
+        return groups;
+      }, []);
+    
+      // Récupérer les ID des membres de tous les groupes de l'utilisateur actuel
+      const memberIds = currentUserGroups.flatMap(group => group.members);
+    
+      // Récupérer tous les utilisateurs et profils de Firebase
+      const usersRef = ref(db, '/users');
+      const usersSnapshot = await get(usersRef);
+      if (!usersSnapshot.exists()) {
+        throw new Error('No users data available');
+      }
+      const users = Object.values(usersSnapshot.val());
+    
+      const profilesRef = ref(db, '/profiles');
+      const profilesSnapshot = await get(profilesRef);
+      if (!profilesSnapshot.exists()) {
+        throw new Error('No profiles data available');
+      }
+    
+      // Convertir profilesSnapshot.val() en un tableau
+      const profilesData = profilesSnapshot.val();
+      const profiles = Object.keys(profilesData).map(key => ({
+        id: key,
+        ...profilesData[key]
+      }));
+    
+      // Filtrer les utilisateurs et les profils qui ont un ID dans la liste des membres
+      const filteredUsers = users.filter(user => memberIds.includes(user.id));
+      const filteredProfiles = profiles.filter(profile => memberIds.includes(profile.id));
+    
+      // Commit les mutations pour remplacer les utilisateurs, les groupes et les profils dans le store
+      commit('setUsers', filteredUsers);
+      commit('setGroups', currentUserGroups);
+      commit('setProfiles', filteredProfiles);
+    },
     async subscribeToDataUpdates({ commit }) {
       const groupsRef = ref(db, 'groups');
       onValue(groupsRef, (snapshot) => {
@@ -158,6 +258,7 @@ export default createStore({
       });
     },
     async addUser({ commit, state }, newUser) {
+      console.log('addUser')
       const encodedSummonerName = encodeURIComponent(newUser.pseudo);
       const cleanedTag = newUser.tag.replace('#', '');
       const usersRef = ref(db, 'users');
@@ -166,7 +267,8 @@ export default createStore({
       try {
         const response = await axios.get(`https://cors-anywhere.herokuapp.com/https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedSummonerName}/${cleanedTag}`, {
           headers: {
-            'X-Riot-Token': apiKey
+            'X-Riot-Token': apiKey,
+            'x-requested-with': 'XMLHttpRequest'
           }
         });
     
@@ -200,8 +302,43 @@ export default createStore({
         return "Le joueur n'existe pas";
       }
     },
-    async fetchProfile({ commit }, { summonerName, tag, idUser }) {
+    async fetchProfile({ commit, state }, { summonerName, tag, idUser, groupId = null }) {
       console.log('fetchProfile')
+      console.log('groupId=',groupId)
+      // Récupérer l'heure actuelle
+      const now = Date.now();
+    
+      // Vérifier si le profil existe déjà
+      const existingProfile = state.profiles.find(profile => profile.id === idUser);
+      if (existingProfile) {
+        console.log('Existing profile:', existingProfile); // Ajoutez cette ligne
+        // Si le dernier fetch a été fait il y a moins de 5 minutes, ne pas fetch à nouveau
+        let lastFetch = existingProfile.lastFetch;
+        console.log('lastFetch:', lastFetch); // Ajoutez cette ligne
+        console.log('now:', now); // Ajoutez cette ligne
+        console.log('Difference in minutes:', (now - lastFetch) / (60 * 1000)); // Ajoutez cette ligne
+        if (lastFetch && now - lastFetch < 5 * 60 * 1000) {
+          console.log('Less than 5 minutes since last fetch, returning...'); // Ajoutez cette ligne
+          return;
+        }
+      }
+    
+      // Si un groupId est fourni, vérifier l'appartenance au groupe
+      if (groupId) {
+        const groupRef = ref(db, 'groups/' + groupId);
+        const snapshot = await get(groupRef);
+
+        if (snapshot.exists()) {
+          const groupData = snapshot.val();
+
+          // Vérifier si l'utilisateur fait partie du groupe
+          if (!groupData.members.includes(idUser)) {
+            return;
+          }
+        }
+      }
+
+
       if (!tag || !summonerName) {
         return;
       }
@@ -214,7 +351,8 @@ export default createStore({
       try {
         const response = await axios.get(url, {
           headers: {
-            'X-Riot-Token': apiKey
+            'X-Riot-Token': apiKey,
+            'x-requested-with': 'XMLHttpRequest'
           }
         });
   
@@ -223,7 +361,8 @@ export default createStore({
   
         const secondResponse = await axios.get(secondUrl, {
           headers: {
-            'X-Riot-Token': apiKey
+            'X-Riot-Token': apiKey,
+            'x-requested-with': 'XMLHttpRequest'
           }
         });
   
@@ -238,7 +377,8 @@ export default createStore({
   
         const rankResponse = await axios.get(`https://cors-anywhere.herokuapp.com/https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`, {
           headers: {
-            'X-Riot-Token': apiKey
+            'X-Riot-Token': apiKey,
+            'x-requested-with': 'XMLHttpRequest'
           }
         });
   
@@ -271,6 +411,7 @@ export default createStore({
               wins,
               losses,
               profileIconUrl,
+              lastFetch: now,
             },
           });
         }
