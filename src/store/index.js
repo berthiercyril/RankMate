@@ -265,7 +265,7 @@ export default createStore({
       const apiKey = import.meta.env.VITE_APP_API_KEY;
     
       try {
-        const response = await axios.get(`https://cors-anywhere.herokuapp.com/https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedSummonerName}/${cleanedTag}`, {
+        const response = await axios.get(`https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedSummonerName}/${cleanedTag}`, {
           headers: {
             'X-Riot-Token': apiKey,
             'x-requested-with': 'XMLHttpRequest'
@@ -346,7 +346,7 @@ export default createStore({
       const apiKey = import.meta.env.VITE_APP_API_KEY;
       const encodedSummonerName = encodeURIComponent(summonerName);
       const cleanedTag = tag.startsWith('#') ? tag.substring(1) : tag;
-      const url = `https://cors-anywhere.herokuapp.com/https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedSummonerName}/${cleanedTag}`;
+      const url = `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedSummonerName}/${cleanedTag}`;
   
       try {
         const response = await axios.get(url, {
@@ -357,7 +357,7 @@ export default createStore({
         });
   
         const puuid = response.data.puuid;
-        const secondUrl = `https://cors-anywhere.herokuapp.com/https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`;
+        const secondUrl = `https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`;
   
         const secondResponse = await axios.get(secondUrl, {
           headers: {
@@ -375,7 +375,7 @@ export default createStore({
         const latestVersion = versionsResponse.data[0];
         const profileIconUrl = `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/profileicon/${profileIconId}.png`;
   
-        const rankResponse = await axios.get(`https://cors-anywhere.herokuapp.com/https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`, {
+        const rankResponse = await axios.get(`https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`, {
           headers: {
             'X-Riot-Token': apiKey,
             'x-requested-with': 'XMLHttpRequest'
@@ -421,7 +421,7 @@ export default createStore({
     },
     async fetchFreeChampions({ commit }) {
       try {
-        const response = await axios.get('https://cors-anywhere.herokuapp.com/https://euw1.api.riotgames.com/lol/platform/v3/champion-rotations', {
+        const response = await axios.get('https://euw1.api.riotgames.com/lol/platform/v3/champion-rotations', {
           headers: {
             'X-Riot-Token': import.meta.env.VITE_APP_API_KEY
           }
