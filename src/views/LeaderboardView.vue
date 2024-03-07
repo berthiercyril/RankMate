@@ -44,10 +44,15 @@ const joinGroup = () => {
 
 const userGroups = computed(() => {
   console.log('Evaluating userGroups');
-  return store.state.groups.filter(group => {
-    console.log('Checking group', group);
-    return group.members.includes(store.state.currentUser.id);
-  });
+  if (Array.isArray(store.state.groups)) {
+    return store.state.groups.filter(group => {
+      console.log('Checking group', group);
+      return group.members.includes(store.state.currentUser.id);
+    });
+  } else {
+    console.log('store.state.groups is not an array');
+    return [];
+  }
 });
 
 const tierValues = {

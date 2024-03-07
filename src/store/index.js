@@ -5,6 +5,7 @@ import axios from 'axios';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, set, get, onValue, update, push } from "firebase/database";
 
+
 const firebaseConfig = {
     apiKey: "AIzaSyCmNYiSAjjU_lH93K8NE7FwitK-cvJKc1A",
     authDomain: "rankmate-f5d6e.firebaseapp.com",
@@ -151,6 +152,7 @@ export default createStore({
   },
   actions: {
     async initializeData({ commit, state }) {
+      console.log('initializeData')
       const db = getDatabase();
       
       // Récupérer l'ID de l'utilisateur actuel
@@ -166,8 +168,11 @@ export default createStore({
     
       // Récupérer le profil de l'utilisateur actuel de Firebase
       const profileRef = ref(db, '/profiles/' + currentUserId);
+      console.log('profileRef=',profileRef)
       const profileSnapshot = await get(profileRef);
+      console.log('profileSnapshot=',profileSnapshot)
       if (!profileSnapshot.exists()) {
+        console.log('No profile data available');
         return;
       }
       const currentProfile = profileSnapshot.val();
@@ -175,6 +180,9 @@ export default createStore({
       // Si l'utilisateur actuel n'a pas de groupes, récupérer seulement les données de l'utilisateur et du profil
       if (!currentUser.groups || currentUser.groups.length === 0) {
         console.log('No groups available');
+        console.log('currentUser=',currentUser)
+        console.log('currentProfile=',currentProfile)
+        console.log('state.users=',state)
         commit('setUsers', [currentUser]);
         commit('setProfiles', [currentProfile]);
         return;
@@ -185,6 +193,7 @@ export default createStore({
         const groupRef = ref(db, '/groups/' + groupId);
         return get(groupRef);
       });
+      console.log('groupPromises=',groupPromises)
       const groupSnapshots = await Promise.all(groupPromises);
     
       // Vérifier si chaque snapshot existe avant d'utiliser snapshot.val()
@@ -227,34 +236,57 @@ export default createStore({
       commit('setUsers', filteredUsers);
       commit('setGroups', currentUserGroups);
       commit('setProfiles', filteredProfiles);
+      console.log('filteredGroups=',currentUserGroups);
+      console.log('state.users=',state)
     },
-    async subscribeToDataUpdates({ commit }) {
-      const groupsRef = ref(db, 'groups');
-      onValue(groupsRef, (snapshot) => {
-        const data = snapshot.val();
-        const groupsArray = Object.values(data || {}); // Convert data to array
-        commit('setGroups', groupsArray);
-      });
-  
-      const usersRef = ref(db, 'users');
-      onValue(usersRef, (snapshot) => {
-        const data = snapshot.val();
-        const usersArray = Object.entries(data || {}).map(([id, userData]) => ({
-          id,
-          ...userData
-        }));
-        commit('setUsers', usersArray); // Replace the entire users state
-      });
+    async subscribeToDataUpdates({ commit, state }) {
+      const db = getDatabase();
+      const currentUserId = state.currentUser.id;
+    
+      // Subscribe to updates of the current user's groups
+      const userRef = ref(db, '/users/' + currentUserId);
+      onValue(userRef, async (snapshot) => {
+        if (snapshot.exists()) {
+          const userData = snapshot.val();
+          const currentUserGroups = userData.groups || [];
+          console.log('Current user groups:', currentUserGroups);
+    
+          // Get the IDs of all members in the current user's groups
+          const groupPromises = currentUserGroups.map(async groupId => {
+            const groupRef = ref(db, '/groups/' + groupId);
+            const snapshot = await get(groupRef);
+            if (snapshot.exists()) {
+              const groupData = snapshot.val();
+              console.log('Group data for group ID ' + groupId + ':', groupData);
+              commit('setGroups', groupData); // You need to create this mutation
+              return groupData.members || [];
+            } else {
+              console.log('No data for group ID ' + groupId);
+              return [];
+            }
+          });
 
+          const memberIds = await Promise.all(groupPromises)
+            .then(groupMembers => groupMembers.flat());
+          console.log('Member IDs:', memberIds);
+    
+          // Subscribe to updates of the users and profiles in the current user's groups
+          const usersRef = ref(db, '/users');
+          onValue(usersRef, (snapshot) => {
+            const data = snapshot.val();
+            const usersArray = Object.values(data || {}).filter(userData => memberIds.includes(userData.id));
+            console.log('Users array:', usersArray);
+            commit('setUsers', usersArray);
+          });
 
-      const profilesRef = ref(db, 'profiles');
-      onValue(profilesRef, (snapshot) => {
-        const data = snapshot.val();
-        const profilesArray = Object.entries(data || {}).map(([id, profileData]) => ({
-          id,
-          ...profileData
-        }));
-        commit('setProfiles', profilesArray); // Replace the entire profiles state
+          const profilesRef = ref(db, '/profiles');
+          onValue(profilesRef, (snapshot) => {
+            const data = snapshot.val();
+            const profilesArray = Object.values(data || {}).filter(profileData => memberIds.includes(profileData.id));
+            console.log('Profiles array:', profilesArray);
+            commit('setProfiles', profilesArray);
+          });
+        }
       });
     },
     async addUser({ commit, state }, newUser) {
@@ -263,14 +295,16 @@ export default createStore({
       const cleanedTag = newUser.tag.replace('#', '');
       const usersRef = ref(db, 'users');
       const apiKey = import.meta.env.VITE_APP_API_KEY;
+      console.log('apiKey=',apiKey, 'test')
     
       try {
-        const response = await axios.get(`https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedSummonerName}/${cleanedTag}`, {
-          headers: {
-            'X-Riot-Token': apiKey,
-            'x-requested-with': 'XMLHttpRequest'
-          }
-        });
+        const response = await axios.get(`https://cors-anywhere.herokuapp.com/https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedSummonerName}/${cleanedTag}`,
+          {
+            headers: {
+              'X-Riot-Token': apiKey,
+              'x-requested-with': 'XMLHttpRequest'
+            }
+          });
     
         if (response.status === 200) {
           // Le joueur existe, vous pouvez continuer
@@ -346,7 +380,7 @@ export default createStore({
       const apiKey = import.meta.env.VITE_APP_API_KEY;
       const encodedSummonerName = encodeURIComponent(summonerName);
       const cleanedTag = tag.startsWith('#') ? tag.substring(1) : tag;
-      const url = `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedSummonerName}/${cleanedTag}`;
+      const url = `https://cors-anywhere.herokuapp.com/https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedSummonerName}/${cleanedTag}`;
   
       try {
         const response = await axios.get(url, {
@@ -357,7 +391,7 @@ export default createStore({
         });
   
         const puuid = response.data.puuid;
-        const secondUrl = `https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`;
+        const secondUrl = `https://cors-anywhere.herokuapp.com/https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`;
   
         const secondResponse = await axios.get(secondUrl, {
           headers: {
@@ -375,7 +409,7 @@ export default createStore({
         const latestVersion = versionsResponse.data[0];
         const profileIconUrl = `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/profileicon/${profileIconId}.png`;
   
-        const rankResponse = await axios.get(`https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`, {
+        const rankResponse = await axios.get(`https://cors-anywhere.herokuapp.com/https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`, {
           headers: {
             'X-Riot-Token': apiKey,
             'x-requested-with': 'XMLHttpRequest'
@@ -421,7 +455,7 @@ export default createStore({
     },
     async fetchFreeChampions({ commit }) {
       try {
-        const response = await axios.get('https://euw1.api.riotgames.com/lol/platform/v3/champion-rotations', {
+        const response = await axios.get('https://cors-anywhere.herokuapp.com/https://euw1.api.riotgames.com/lol/platform/v3/champion-rotations', {
           headers: {
             'X-Riot-Token': import.meta.env.VITE_APP_API_KEY
           }

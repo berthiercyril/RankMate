@@ -35,7 +35,9 @@ const message = vueRef(''); // Create a reactive variable for the message
 const createUser = async () => {
   const user = { pseudo: pseudo.value, tag: tag.value };
   message.value = await store.dispatch('addUser', user);
-
+  console.log('User created', user);
+  await store.dispatch('initializeData');
+  
 };
 
 console.log(store.state.profiles);
@@ -50,11 +52,6 @@ const expose = { createUser, pseudo, showJoinButton, message };
 watch(() => store.state.currentUser, (newVal, oldVal) => {
   console.log('currentUser changed from', oldVal, 'to', newVal);
   showJoinButton.value = !newVal;
-  // Si newVal (le nouvel utilisateur actuel) n'est pas null, dispatch initializeData
-  // if (newVal) {
-  //   console.log('New user detected, initializing data');
-  //   store.dispatch('initializeData');
-  // }
 });
 
 </script>
